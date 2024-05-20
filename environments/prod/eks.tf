@@ -8,23 +8,23 @@ module "eks-poc" {
   version                         = "20.8.5"
   vpc_id                          = module.vpc.vpc_id
   subnet_ids                      = module.vpc.private_subnets
-  cluster_name                    = var.eks-poc.name
-  cluster_version                 = var.eks-poc.version
-  cluster_endpoint_public_access  = var.eks-poc.cluster_endpoint_public_access
-  cluster_endpoint_private_access = var.eks-poc.cluster_endpoint_private_access
-  cluster_addons                  = var.eks-poc.cluster_addons
-  create_cluster_security_group   = var.eks-poc.create_cluster_security_group
-  create_node_security_group      = var.eks-poc.create_node_security_group
+  cluster_name                    = local.eks-poc.name
+  cluster_version                 = local.eks-poc.version
+  cluster_endpoint_public_access  = local.eks-poc.cluster_endpoint_public_access
+  cluster_endpoint_private_access = local.eks-poc.cluster_endpoint_private_access
+  cluster_addons                  = local.eks-poc.cluster_addons
+  create_cluster_security_group   = local.eks-poc.create_cluster_security_group
+  create_node_security_group      = local.eks-poc.create_node_security_group
   ########## Deprecated #############
-  # manage_aws_auth_configmap       = var.eks-poc.manage_aws_auth_configmap
-  # aws_auth_roles                  = var.eks-poc.aws_auth_roles
-  # aws_auth_users                  = var.eks-poc.aws_auth_users
+  # manage_aws_auth_configmap       = local.eks-poc.manage_aws_auth_configmap
+  # aws_auth_roles                  = local.eks-poc.aws_auth_roles
+  # aws_auth_users                  = local.eks-poc.aws_auth_users
   ###################################
-  enable_cluster_creator_admin_permissions = var.eks-poc.enable_cluster_creator_admin_permissions
+  enable_cluster_creator_admin_permissions = local.eks-poc.enable_cluster_creator_admin_permissions
 
   ########## Use Fargate and/or Managed node groups #############
-  #fargate_profiles                = var.eks-poc.fargate_profiles
-  eks_managed_node_groups = var.eks-poc.eks_managed_node_groups
+  #fargate_profiles                = local.eks-poc.fargate_profiles
+  eks_managed_node_groups = local.eks-poc.eks_managed_node_groups
 
   create = true
   tags = {
@@ -152,4 +152,29 @@ resource "helm_release" "prometheus" {
 #   chart      = "grafana"
 #   namespace  = "monitoring"
 #   depends_on = [module.eks-poc, helm_release.prometheus]
+# }
+
+
+module "irsa-ebs-csi" {
+  source      = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version     = "5.39.1"
+  create_role = true
+  role_name   = "AmazonEKSTFEBSCSIRole-${module.eks-poc.cluster_name}"
+  #provider_url                  = replace(data.aws_eks_cluster.eks.identity.0.oidc.0.issuer, "https://", "")
+  provider_url                  = module.eks-poc.oidc_provider_arn
+  role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+  depends_on                    = [module.eks-poc]
+}
+
+resource "aws_eks_addon" "ebs-csi" {
+  cluster_name             = local.eks-poc.name
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.30.0-eksbuild.1"
+  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+  depends_on               = [module.eks-poc]
+}
+
+# data "aws_eks_cluster" "eks" {
+#   name = local.eks-poc.name
 # }

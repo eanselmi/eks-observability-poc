@@ -1,0 +1,15 @@
+auth:
+  enabled: true
+  rootPassword: "1234"
+  # -- existingSecret Existing secret with MongoDB(&reg;) credentials (keys: `mongodb-passwords`, `mongodb-root-password`, `mongodb-metrics-password`, ` mongodb-replica-set-key`)
+  existingSecret: ""
+architecture: replicaset
+replicaCount: 3
+persistence:
+  enabled: true
+volumePermissions:
+  enabled: true
+metrics:
+  enabled: false
+  prometheusRule:
+    enabled: false

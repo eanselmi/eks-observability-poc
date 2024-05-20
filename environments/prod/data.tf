@@ -20,3 +20,10 @@ resource "aws_iam_role_policy_attachment" "ssm_managed_instance_policy" {
 data "aws_iam_policy" "cloudwatch_agent_server_policy" {
   name = "CloudWatchAgentServerPolicy"
 }
+
+data "aws_iam_policy" "ebs_csi_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+
+
