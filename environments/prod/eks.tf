@@ -26,6 +26,7 @@ module "eks-poc" {
   #fargate_profiles                = local.eks-poc.fargate_profiles
   eks_managed_node_groups = local.eks-poc.eks_managed_node_groups
 
+
   create = true
   tags = {
     env = "poc"

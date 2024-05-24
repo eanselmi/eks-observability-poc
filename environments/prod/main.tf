@@ -10,3 +10,6 @@ module "vpc" {
   s3_endpoint_enable       = var.vpc.s3_endpoint_enable
   dynamodb_endpoint_enable = var.vpc.dynamodb_endpoint_enable
 }
+resource "aws_ebs_encryption_by_default" "default_ebs_encryption" {
+  enabled = true
+}

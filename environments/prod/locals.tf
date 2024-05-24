@@ -59,9 +59,25 @@ locals {
         min_size     = 3
         max_size     = 6
         desired_size = 3
+        #disk_size = 50
+
 
         instance_types = ["m5.large"]
         capacity_type  = "ON_DEMAND"
+        block_device_mappings = {
+          xvda = {
+            device_name = "/dev/xvda"
+            ebs = {
+              volume_size = 30
+              volume_type = "gp3"
+              iops        = 3000
+              throughput  = 150
+              # encrypted             = true
+              # kms_key_id            = module.ebs_kms_key.key_arn
+              delete_on_termination = true
+            }
+          }
+        }
       }
     }
 
